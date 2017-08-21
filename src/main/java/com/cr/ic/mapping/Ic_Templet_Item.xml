@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cr.ic.dao.Ic_Templet_Item_Dao">
+	<resultMap type="com.cr.ic.pojo.Ic_Templet_Item" id="Ic_Templet_Item">
+		<id column="ID" jdbcType="INTEGER" property="id" />
+		<result column="TEMPLET_ID" jdbcType="INTEGER" property="templet_id" />
+		<result column="PARENT_ID" jdbcType="INTEGER" property="parent_id" />
+		<result column="ITEM_ORDER" jdbcType="INTEGER" property="item_order" />
+		<result column="ITEM_NAME" jdbcType="VARCHAR" property="item_name" />
+	</resultMap>
+
+	<insert id="addTemplet_Item" parameterType="com.cr.ic.pojo.Ic_Templet_Item">
+		<selectKey resultType="java.lang.Integer" order="BEFORE"
+			keyProperty="id">
+			select IC_TEMPLET_ITEM_SEQUENCE.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO IC_TEMPLET_ITEM
+		(
+		id,
+		templet_id,
+		parent_id,
+		item_order,
+		item_name
+		)
+		VALUES
+		(
+		#{id},
+		#{templet_id,jdbcType=INTEGER},
+		#{parent_id,jdbcType=INTEGER},
+		#{item_order,jdbcType=INTEGER},
+		#{item_name}
+		)
+	</insert>
+
+	<!-- 级联删除表项时需要的方法 -->
+	<delete id="deleteItemByItemIds">
+		DELETE FROM IC_TEMPLET_ITEM
+		WHERE id in
+		<foreach collection="array" item="item_id" index="index" open="("
+			close=")" separator=",">
+			#{item_id}
+		</foreach>
+	</delete>
+
+	<select id="queryItemByTempletId" parameterType="Integer"
+		resultMap="Ic_Templet_Item">
+		select a.ID,a.TEMPLET_ID,a.PARENT_ID,a.ITEM_NAME
+		<!-- b.ID item_id,b.TEMPLET_ID,b.parent_Id,b.item_name -->
+		from Ic_Templet_Item a <!-- left join Ic_Templet_Item b -->
+		<!-- on a.ID=b.TEMPLET_ID -->
+		where templet_id=#{templet_id,jdbcType=INTEGER}
+	</select>
+
+	<select id="getKidsItems" parameterType="Integer" resultMap="Ic_Templet_Item">
+		select a.ID,a.TEMPLET_ID,a.PARENT_ID,a.ITEM_NAME
+		<!-- b.ID item_id,b.TEMPLET_ID,b.parent_Id,b.item_name -->
+		from Ic_Templet_Item a <!-- left join Ic_Templet_Item b -->
+		<!-- on a.ID=b.TEMPLET_ID -->
+		where parent_id=#{parent_id,jdbcType=INTEGER}
+	</select>
+
+	<!-- parameterType只允许一个，传递一个参数 。这里基本类型如String在lang包下，直接写类名即可 -->
+	<!-- <select id="queryAllTemplet" resultMap="Ic_Templet"> select a.ID,a.CREATE_NAME, 
+		b.ID item_id,b.TEMPLET_ID,b.parentId,b.item_name from Ic_Templet a left join 
+		Ic_Templet_Item b on a.ID=b.TEMPLET_ID </select> -->
+
+	<!-- <delete id="deleteOne" parameterType="int" > DELETE FROM MESSAGE WHERE 
+		id = #{_parameter} </delete> <select id="queryById" resultMap="MessageResult" 
+		parameterType="java.lang.Integer" > select command from message where id 
+		= #{id,jdbcType=INTEGER} </select> -->
+	<!-- <select id="version" parameterType="long" resultType="int"> SELECT 
+		version FROM user WHERE id = #{id,jdbcType=INTEGER} </select> <insert id="insert" 
+		parameterType="UserAlias" useGeneratedKeys="false"> INSERT INTO user ( id, 
+		username, password, administrator ) VALUES ( #{id}, #{username,jdbcType=VARCHAR}, 
+		#{password.encrypted:VARCHAR}, #{administrator,jdbcType=BOOLEAN} ) </insert> 
+		<update id="update" parameterType="UserAlias"> UPDATE user SET username = 
+		#{username,jdbcType=VARCHAR}, password = #{password.encrypted,jdbcType=VARCHAR}, 
+		administrator = #{administrator,jdbcType=BOOLEAN} WHERE id = #{id,jdbcType=INTEGER} 
+		</update> Unique constraint check <select id="isUniqueUsername" parameterType="map" 
+		resultType="boolean"> SELECT (count(*) = 0) FROM user WHERE ((#{userId,jdbcType=BIGINT} 
+		IS NOT NULL AND id != #{userId,jdbcType=BIGINT}) OR #{userId,jdbcType=BIGINT} 
+		IS NULL) other than me AND (username = #{username,jdbcType=VARCHAR}) </select> -->
+</mapper>

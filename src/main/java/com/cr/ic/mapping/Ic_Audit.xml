@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2009-2012 the original author or authors. Licensed under the 
+	Apache License, Version 2.0 (the "License"); you may not use this file except 
+	in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cr.ic.dao.Ic_Audit_Dao">
+	<resultMap type="com.cr.ic.pojo.Ic_Audit" id="Ic_Audit">
+		<id column="ID" jdbcType="INTEGER" property="id" />
+		<result column="AUDIT_DATE" jdbcType="TIMESTAMP" property="audit_date" />
+		<result column="TEMPLET_ID" jdbcType="INTEGER" property="templet_id" />
+		<result column="AUDIT_NAME" jdbcType="VARCHAR" property="audit_name" />
+		<result column="CREATE_ID" jdbcType="VARCHAR" property="create_id" />
+	</resultMap>
+
+	<!-- 由用户id获得审计项目 -->
+	<select id="getAuditByUser" resultMap="Ic_Audit">
+		select t.ID,t.AUDIT_DATE,t.AUDIT_NAME,t.TEMPLET_ID, t.CREATE_ID
+		from IC_AUDIT t
+		where CREATE_ID=#{create_id,jdbcType=INTEGER}
+		order by t.AUDIT_DATE DESC
+	</select>
+	
+	<!-- 由审计项目名称（模糊）获得审计项目 -->
+	<select id="getAuditByName" resultMap="Ic_Audit">
+		select t.ID,
+		t.AUDIT_DATE,t.AUDIT_NAME,t.TEMPLET_ID, t.CREATE_ID
+		from IC_AUDIT t
+		where AUDIT_NAME like '%'|| #{audit_keyword} ||'%'
+		order by t.AUDIT_DATE DESC
+	</select>
+	
+	<!-- 新建审计项目 -->
+	<insert id="insertAudit" parameterType="com.cr.ic.pojo.Ic_Audit">
+		<selectKey resultType="java.lang.Integer" order="BEFORE"
+			keyProperty="id">
+			select IC_AUDIT_SEQUENCE.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO IC_AUDIT
+		(
+		id,
+		audit_date,
+		templet_id,
+		audit_name,
+		create_id
+		)
+		VALUES
+		(
+		#{id},
+		#{audit_date,jdbcType=TIMESTAMP},
+		#{templet_id,jdbcType=INTEGER},
+		#{audit_name,jdbcType=VARCHAR},
+		#{create_id,jdbcType=INTEGER}
+		)
+	</insert>
+
+</mapper>

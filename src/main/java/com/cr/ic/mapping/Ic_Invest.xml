@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cr.ic.dao.Ic_Invest_Dao">
+	<resultMap type="com.cr.ic.pojo.Ic_Invest" id="Ic_Invest">
+		<id column="ID" jdbcType="INTEGER" property="id" />
+		<result column="ITEM_ID" jdbcType="INTEGER" property="item_id" />
+		<result column="INVEST_NAME" jdbcType="VARCHAR" property="invest_name" />
+	</resultMap>
+
+	<insert id="insertInvest" parameterType="com.cr.ic.pojo.Ic_Invest">
+		<selectKey resultType="java.lang.Integer" order="BEFORE"
+			keyProperty="id">
+			select IC_INVEST_SEQUENCE.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO IC_INVEST
+		(
+		id,
+		item_id,
+		invest_name
+		)
+		VALUES
+		(
+		#{id},
+		#{item_id,jdbcType=INTEGER},
+		#{invest_name,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<insert id="insertIc_InvestBatch" parameterType="java.util.List">
+		INSERT INTO IC_INVEST
+		(
+		id,
+		item_id,
+		invest_name
+		)
+		select IC_INVEST_SEQUENCE.nextval,A.* from(
+		<foreach collection="list" item="item" index="index"
+			separator="UNION ALL">
+			select
+			#{item.item_id},
+			#{item.invest_name,jdbcType=VARCHAR}
+			from dual
+		</foreach>
+		) A
+	</insert>
+
+	<update id="modifyInvest" parameterType="com.cr.ic.pojo.Ic_Invest">
+		UPDATE IC_INVEST SET
+		invest_name = #{invest_name,jdbcType=VARCHAR}
+		WHERE
+		id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<update id="updateIcInvestBatch" parameterType="java.util.List">
+		begin
+		<foreach collection="list" item="ic_invest" index="index"
+			separator=";">
+			update ic_invest t
+			<set>
+				t.invest_name=#{ic_invest.invest_name,jdbcType=VARCHAR}
+			</set>
+			where t.id=#{ic_invest.id,jdbcType=INTEGER}
+		</foreach>
+		;end;
+	</update>
+
+	<delete id="deleteInvest" parameterType="Integer">
+		DELETE FROM IC_INVEST WHERE id = #{id}
+	</delete>
+
+	<!-- 级联删除表项时需要的方法 -->
+	<delete id="deleteInvestByItemIds">
+		DELETE FROM IC_INVEST
+		WHERE item_id in
+		<foreach collection="array" item="item_id" index="index" open="("
+			close=")" separator=",">
+			#{item_id}
+		</foreach>
+	</delete>
+
+	<select id="getInvestIdsByItemIds" resultType="java.lang.Integer">
+		select ID
+		from IC_INVEST
+		where ITEM_ID in
+		<foreach collection="list" item="item_id" index="index" open="("
+			close=")" separator=",">
+			#{item_id}
+		</foreach>
+	</select>
+
+	<select id="getInvestByItemId" parameterType="Integer"
+		resultMap="Ic_Invest">
+		select ID,ITEM_ID,INVEST_NAME from Ic_INVEST
+		where
+		ITEM_ID = #{item_id,jdbcType=INTEGER}
+	</select>
+
+	<select id="getInvestById" parameterType="Integer" resultMap="Ic_Invest">
+		select ID,ITEM_ID,INVEST_NAME from IC_INVEST
+		where
+		id = #{id,jdbcType=INTEGER}
+	</select>
+
+	<!-- <delete id="deleteOne" parameterType="int" > DELETE FROM MESSAGE WHERE 
+		id = #{_parameter} </delete> <select id="queryById" resultMap="MessageResult" 
+		parameterType="java.lang.Integer" > select command from message where id 
+		= #{id,jdbcType=INTEGER} </select> -->
+	<!-- <select id="version" parameterType="long" resultType="int"> SELECT 
+		version FROM user WHERE id = #{id,jdbcType=INTEGER} </select> <insert id="insert" 
+		parameterType="UserAlias" useGeneratedKeys="false"> INSERT INTO user ( id, 
+		username, password, administrator ) VALUES ( #{id}, #{username,jdbcType=VARCHAR}, 
+		#{password.encrypted:VARCHAR}, #{administrator,jdbcType=BOOLEAN} ) </insert> 
+		<update id="update" parameterType="UserAlias"> UPDATE user SET username = 
+		#{username,jdbcType=VARCHAR}, password = #{password.encrypted,jdbcType=VARCHAR}, 
+		administrator = #{administrator,jdbcType=BOOLEAN} WHERE id = #{id,jdbcType=INTEGER} 
+		</update> Unique constraint check <select id="isUniqueUsername" parameterType="map" 
+		resultType="boolean"> SELECT (count(*) = 0) FROM user WHERE ((#{userId,jdbcType=BIGINT} 
+		IS NOT NULL AND id != #{userId,jdbcType=BIGINT}) OR #{userId,jdbcType=BIGINT} 
+		IS NULL) other than me AND (username = #{username,jdbcType=VARCHAR}) </select> -->
+</mapper>

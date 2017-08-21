@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cr.ic.dao.Ic_Templet_Dao">
+	<resultMap type="com.cr.ic.pojo.Ic_Templet" id="Ic_Templet">
+		<id column="ID" jdbcType="INTEGER" property="id" />
+		<result column="CREATE_DATE" jdbcType="DATE" property="create_date" />
+		<result column="CREATE_NAME" jdbcType="VARCHAR" property="create_name" />
+		<result column="TEMPLET_NAME" jdbcType="VARCHAR" property="templet_name" />
+		<collection property="ic_templet_items"
+			resultMap="com.cr.ic.dao.Ic_Templet_Item_Dao.Ic_Templet_Item" />
+	</resultMap>
+	<!-- parameterType只允许一个，传递一个参数 。这里基本类型如String在lang包下，直接写类名即可 -->
+	<select id="queryAllTemplet" resultMap="Ic_Templet">
+		select a.ID,a.CREATE_DATE,a.CREATE_NAME,a.TEMPLET_NAME
+		<!-- b.ID item_id,b.TEMPLET_ID,b.parent_Id,b.item_name -->
+		from Ic_Templet a <!-- left join Ic_Templet_Item b -->
+		<!-- on a.ID=b.TEMPLET_ID -->
+		order by a.CREATE_DATE DESC
+	</select>
+
+	<delete id="deleteTemplet" parameterType="java.lang.Integer">
+		DELETE FROM IC_TEMPLET
+		WHERE id = #{id}
+	</delete>
+
+	<select id="queryTempletByName" resultMap="Ic_Templet">
+		select ID,TEMPLET_NAME from Ic_Templet where TEMPLET_NAME like '%'||
+		#{templet_keyword} ||'%'
+	</select>
+
+	<select id="queryIcTempletById" resultMap="Ic_Templet">
+		select ID,TEMPLET_NAME,CREATE_NAME from Ic_Templet where id = #{id}
+	</select>
+
+	<insert id="addTemplet" parameterType="com.cr.ic.pojo.Ic_Templet">
+		<selectKey resultType="java.lang.Integer" order="BEFORE"
+			keyProperty="id">
+			select IC_TEMPLET_SEQUENCE.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO IC_TEMPLET
+		(
+		id,
+		create_date,
+		create_name,
+		templet_name
+		)
+		VALUES
+		(
+		#{id},
+		#{create_date,jdbcType=DATE},
+		#{create_name,jdbcType=VARCHAR},
+		#{templet_name,jdbcType=VARCHAR}
+		)
+	</insert>
+	<!-- <delete id="deleteOne" parameterType="int" > DELETE FROM MESSAGE WHERE 
+		id = #{_parameter} </delete> <select id="queryById" resultMap="MessageResult" 
+		parameterType="java.lang.Integer" > select command from message where id 
+		= #{id,jdbcType=INTEGER} </select> -->
+	<!-- <select id="version" parameterType="long" resultType="int"> SELECT 
+		version FROM user WHERE id = #{id,jdbcType=INTEGER} </select> <insert id="insert" 
+		parameterType="UserAlias" useGeneratedKeys="false"> INSERT INTO user ( id, 
+		username, password, administrator ) VALUES ( #{id}, #{username,jdbcType=VARCHAR}, 
+		#{password.encrypted:VARCHAR}, #{administrator,jdbcType=BOOLEAN} ) </insert> 
+		<update id="update" parameterType="UserAlias"> UPDATE user SET username = 
+		#{username,jdbcType=VARCHAR}, password = #{password.encrypted,jdbcType=VARCHAR}, 
+		administrator = #{administrator,jdbcType=BOOLEAN} WHERE id = #{id,jdbcType=INTEGER} 
+		</update> Unique constraint check <select id="isUniqueUsername" parameterType="map" 
+		resultType="boolean"> SELECT (count(*) = 0) FROM user WHERE ((#{userId,jdbcType=BIGINT} 
+		IS NOT NULL AND id != #{userId,jdbcType=BIGINT}) OR #{userId,jdbcType=BIGINT} 
+		IS NULL) other than me AND (username = #{username,jdbcType=VARCHAR}) </select> -->
+</mapper>

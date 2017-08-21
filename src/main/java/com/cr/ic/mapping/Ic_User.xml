@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cr.ic.dao.Ic_User_Dao">
+	<resultMap type="com.cr.ic.pojo.Ic_User" id="Ic_User">
+		<id column="USERID" jdbcType="INTEGER" property="userid" />
+		<id column="DEPARTMENT_ID" jdbcType="INTEGER" property="department_id" />
+		<result column="USERNAME" jdbcType="VARCHAR" property="username" />
+		<result column="REALNAME" jdbcType="VARCHAR" property="realname" />
+		<result column="PASSWORD" jdbcType="VARCHAR" property="password" />
+	</resultMap>
+
+	<select id="login" parameterType="com.cr.ic.pojo.Ic_User"
+		resultMap="Ic_User">
+		select t.userid,
+		t.department_id,t.username,t.realname,t.password
+		from IC_USER t
+		where t.username=#{username,jdbcType=VARCHAR}
+		and t.password=#{password,jdbcType=VARCHAR}
+	</select>
+
+
+
+
+	<!-- <delete id="deleteOne" parameterType="int" > DELETE FROM MESSAGE WHERE 
+		id = #{_parameter} </delete> <select id="queryById" resultMap="MessageResult" 
+		parameterType="java.lang.Integer" > select command from message where id 
+		= #{id,jdbcType=INTEGER} </select> -->
+	<!-- <select id="version" parameterType="long" resultType="int"> SELECT 
+		version FROM user WHERE id = #{id,jdbcType=INTEGER} </select> <insert id="insert" 
+		parameterType="UserAlias" useGeneratedKeys="false"> INSERT INTO user ( id, 
+		username, password, administrator ) VALUES ( #{id}, #{username,jdbcType=VARCHAR}, 
+		#{password.encrypted:VARCHAR}, #{administrator,jdbcType=BOOLEAN} ) </insert> 
+		<update id="update" parameterType="UserAlias"> UPDATE user SET username = 
+		#{username,jdbcType=VARCHAR}, password = #{password.encrypted,jdbcType=VARCHAR}, 
+		administrator = #{administrator,jdbcType=BOOLEAN} WHERE id = #{id,jdbcType=INTEGER} 
+		</update> Unique constraint check <select id="isUniqueUsername" parameterType="map" 
+		resultType="boolean"> SELECT (count(*) = 0) FROM user WHERE ((#{userId,jdbcType=BIGINT} 
+		IS NOT NULL AND id != #{userId,jdbcType=BIGINT}) OR #{userId,jdbcType=BIGINT} 
+		IS NULL) other than me AND (username = #{username,jdbcType=VARCHAR}) </select> -->
+</mapper>

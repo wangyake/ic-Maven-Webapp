@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cr.ic.dao.Ic_Test_Result_Dao">
+	<resultMap type="com.cr.ic.pojo.Ic_Test_Result" id="ic_test_result">
+		<id column="TRID" jdbcType="INTEGER" property="trid" />
+		<result column="AUDIT_ID" jdbcType="INTEGER" property="audit_id" />
+		<result column="TEST_ID" jdbcType="INTEGER" property="test_id" />
+		<result column="TEST_EFFECT" jdbcType="VARCHAR" property="test_effect" />
+		<result column="TEST_RISK" jdbcType="VARCHAR" property="test_risk" />
+		<result column="TEST_RECORD" jdbcType="VARCHAR" property="test_record" />
+		<association property="ic_test" column="TEST_ID"
+			select="com.cr.ic.dao.Ic_Test_Dao.getTestById"></association>
+	</resultMap>
+
+	<select id="getTestAndResult" resultMap="ic_test_result">
+		select
+		a.id,a.item_id,a.test_target,a.test_weakness,a.test_method,
+		b.trid,b.audit_id,b.test_id,b.test_effect,b.test_risk,b.test_record
+		from ic_test a left join ic_test_result b
+		on a.id=b.test_id
+		where a.item_id=#{item_id,jdbcType=INTEGER}
+		and b.audit_id=#{audit_id,jdbcType=INTEGER}
+	</select>
+
+	<delete id="deleteTestResultByTestIds">
+		DELETE FROM IC_TEST_RESULT
+		where test_id in
+		<foreach collection="list" item="test_id" index="index" open="("
+			close=")" separator=",">
+			#{test_id}
+		</foreach>
+	</delete>
+
+	<delete id="deleteTestResultByTestId">
+		DELETE FROM IC_TEST_RESULT
+		where test_id=#{test_id,jdbcType=INTEGER}
+	</delete>
+
+	<insert id="insertTestResultBatch" parameterType="java.util.List">
+		INSERT INTO IC_TEST_RESULT
+		(
+		trid,
+		audit_id,
+		test_id,
+		test_effect,
+		test_risk,
+		test_record
+		)
+		select IC_test_result_SEQUENCE.nextval,A.* from(
+		<foreach collection="list" item="item" index="index"
+			separator="UNION ALL">
+			select
+			#{item.audit_id},
+			#{item.test_id},
+			#{item.test_effect,jdbcType=VARCHAR},
+			#{item.test_risk,jdbcType=VARCHAR},
+			#{item.test_record,jdbcType=VARCHAR}
+			from dual
+		</foreach>
+		) A
+	</insert>
+
+
+	<insert id="insertTestResult" parameterType="com.cr.ic.pojo.Ic_Test_Result">
+		<selectKey resultType="java.lang.Integer" order="BEFORE"
+			keyProperty="trid">
+			select IC_TEST_RESULT_SEQUENCE.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO IC_TEST_RESULT
+		(
+		trid,
+		audit_id,
+		test_id,
+		test_effect,
+		test_risk,
+		test_record
+		)
+		VALUES
+		(
+		#{trid},
+		#{audit_id,jdbcType=INTEGER},
+		#{test_id,jdbcType=INTEGER},
+		#{test_effect,jdbcType=VARCHAR},
+		#{test_risk,jdbcType=VARCHAR},
+		#{test_record,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<update id="updateTestResultBatch" parameterType="java.util.List">
+		begin
+		<foreach collection="list" item="result" index="index"
+			separator=";">
+			update ic_test_result t
+			<set>
+				t.test_risk=#{result.test_risk,jdbcType=VARCHAR},
+				t.test_effect=#{result.test_effect,jdbcType=VARCHAR},
+				t.test_record=#{result.test_record,jdbcType=VARCHAR}
+			</set>
+			where t.trid=#{result.trid,jdbcType=INTEGER}
+		</foreach>
+		;end;
+	</update>
+
+	<!-- ( #{id}, #{audit_id,jdbcType=INTEGER}, #{invest_id,jdbcType=INTEGER}, 
+		#{invest_result,jdbcType=VARCHAR}, #{invest_remark,jdbcType=VARCHAR} ) -->
+
+	<!-- <delete id="deleteOne" parameterType="int" > DELETE FROM MESSAGE WHERE 
+		id = #{_parameter} </delete> <select id="queryById" resultMap="MessageResult" 
+		parameterType="java.lang.Integer" > select command from message where id 
+		= #{id,jdbcType=INTEGER} </select> -->
+	<!-- <select id="version" parameterType="long" resultType="int"> SELECT 
+		version FROM user WHERE id = #{id,jdbcType=INTEGER} </select> <insert id="insert" 
+		parameterType="UserAlias" useGeneratedKeys="false"> INSERT INTO user ( id, 
+		username, password, administrator ) VALUES ( #{id}, #{username,jdbcType=VARCHAR}, 
+		#{password.encrypted:VARCHAR}, #{administrator,jdbcType=BOOLEAN} ) </insert> 
+		<update id="update" parameterType="UserAlias"> UPDATE user SET username = 
+		#{username,jdbcType=VARCHAR}, password = #{password.encrypted,jdbcType=VARCHAR}, 
+		administrator = #{administrator,jdbcType=BOOLEAN} WHERE id = #{id,jdbcType=INTEGER} 
+		</update> Unique constraint check <select id="isUniqueUsername" parameterType="map" 
+		resultType="boolean"> SELECT (count(*) = 0) FROM user WHERE ((#{userId,jdbcType=BIGINT} 
+		IS NOT NULL AND id != #{userId,jdbcType=BIGINT}) OR #{userId,jdbcType=BIGINT} 
+		IS NULL) other than me AND (username = #{username,jdbcType=VARCHAR}) </select> -->
+</mapper>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cr.ic.dao.Ic_Invest_Result_Dao">
+	<resultMap type="com.cr.ic.pojo.Ic_Invest_Result" id="Ic_Invest_Result">
+		<id column="IRID" jdbcType="INTEGER" property="irid" />
+		<result column="AUDIT_ID" jdbcType="INTEGER" property="audit_id" />
+		<result column="INVEST_ID" jdbcType="INTEGER" property="invest_id" />
+		<result column="INVEST_RESULT" jdbcType="VARCHAR" property="invest_result" />
+		<result column="INVEST_REMARK" jdbcType="VARCHAR" property="invest_remark" />
+		<association property="ic_invest" column="INVEST_ID"
+			select="com.cr.ic.dao.Ic_Invest_Dao.getInvestById"></association>
+	</resultMap>
+	
+	<!-- 由审计模板项id和审计项目id获得调查项目和对应的结果 -->
+	<select id="getInvestAndResult" resultMap="Ic_Invest_Result">
+		select
+		a.id,a.item_id,a.invest_name,
+		b.irid,b.audit_id,b.invest_id,b.invest_result,b.invest_remark
+		from IC_INVEST a left join IC_INVEST_RESULT b
+		on a.id=b.invest_id
+		where a.item_id=#{item_id,jdbcType=INTEGER}
+		and b.audit_id=#{audit_id,jdbcType=INTEGER}
+	</select>
+	
+	<!-- 新建调查结果 -->
+	<insert id="insertInvestResult" parameterType="com.cr.ic.pojo.Ic_Invest_Result">
+		<selectKey resultType="java.lang.Integer" order="BEFORE"
+			keyProperty="irid">
+			select IC_INVEST_RESULT_SEQUENCE.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO IC_INVEST_RESULT
+		(
+		irid,
+		audit_id,
+		invest_id,
+		invest_result,
+		invest_remark
+		)
+		VALUES
+		(
+		#{irid},
+		#{audit_id,jdbcType=INTEGER},
+		#{invest_id,jdbcType=INTEGER},
+		#{invest_result,jdbcType=VARCHAR},
+		#{invest_remark,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 批量插入调查结果 -->
+	<insert id="insertInvestResultBatch" parameterType="java.util.List">
+		INSERT INTO IC_INVEST_RESULT
+		(
+		irid,
+		audit_id,
+		invest_id,
+		invest_result,
+		invest_remark
+		)
+		select IC_INVEST_RESULT_SEQUENCE.nextval,A.* from(
+		<foreach collection="list" item="item" index="index"
+			separator="UNION ALL">
+			select
+			#{item.audit_id},
+			#{item.invest_id},
+			#{item.invest_result,jdbcType=VARCHAR},
+			#{item.invest_remark,jdbcType=VARCHAR}
+			from dual
+		</foreach>
+		) A
+	</insert>
+	
+	<!-- 批量更新调查结果 -->
+	<update id="updateInvestResultBatch" parameterType="java.util.List">
+		begin
+		<foreach collection="list" item="result" index="index"
+			separator=";">
+			update ic_invest_result t
+			<set>
+				t.invest_remark=#{result.invest_remark,jdbcType=VARCHAR},
+				t.invest_result=#{result.invest_result,jdbcType=VARCHAR}
+			</set>
+			where t.irid=#{result.irid,jdbcType=INTEGER}
+		</foreach>
+		;end;
+	</update>
+	
+	<delete id="deleteInvestResultByInvestIds">
+		DELETE FROM IC_INVEST_RESULT
+		WHERE invest_id in
+		<foreach collection="list" item="invest_id" index="index"
+			open="(" close=")" separator=",">
+			#{invest_id}
+		</foreach>
+	</delete>
+
+	<delete id="deleteInvestResultByInvestId">
+		DELETE FROM IC_INVEST_RESULT
+		WHERE invest_id= #{invest_id,jdbcType=INTEGER}
+	</delete>
+</mapper>
